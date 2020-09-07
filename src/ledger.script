@@ -1,0 +1,114 @@
+# create-ledger <name> description <description> seed <seed> 
+create-ledger test description “test ledger 2020” seed “harvard”
+
+
+# create-account <account-id>
+create-account mary
+create-account bob
+create-account bill
+create-account frank
+create-account jane
+
+
+# get-account-balance <account-id>
+# expect error since not committed to a block
+get-account-balance mary
+
+
+#process-transaction <transaction-id> amount <amount> fee <fee> note <note> payer <account-address> receiver <account-address>
+
+
+process-transaction 1 amount 1000 fee 10 note “fund account” payer master receiver mary
+process-transaction 2 amount 1000 fee 10 note “fund account” payer master receiver bob
+process-transaction 3 amount 1000 fee 10 note “fund account” payer master receiver bill
+process-transaction 4 amount 1000 fee 10 note “fund account” payer master receiver frank
+process-transaction 5 amount 1000 fee 10 note “fund account” payer master receiver mary
+
+
+# expect error since the account mary has not been committed to a block
+get-account-balance mary
+
+
+# should not show any account balances since no block has been committed
+get-account-balances
+
+
+process-transaction 6 amount 1000 fee 10 note “fund account” payer master receiver bob
+process-transaction 7 amount 1000 fee 10 note “fund account” payer master receiver bill
+process-transaction 8 amount 1000 fee 10 note “fund account” payer master receiver frank
+process-transaction 9 amount 1000 fee 10 note “fund account” payer master receiver mary
+process-transaction 10 amount 1000 fee 10 note “fund account” payer master receiver bob
+
+
+# expect balance of 3000 for mary
+get-account-balance mary
+# expect balance of 3000 for bob
+get-account-balance bob
+# expect balance of 2000 for bill
+get-account-balance bill
+# expect balance of 2000 for frank
+get-account-balance frank
+# expect balance of 0 for jane
+get-account-balance jane
+
+
+# show the details of block #1
+get-block 1
+
+
+#show the details of transaction 10
+get-transaction 10
+
+
+process-transaction 11 amount 200 fee 10 note “september rent” payer frank receiver jane
+
+
+# expect balance of 2000 for frank
+get-account-balance frank
+# expect balance of 0 for jane
+get-account-balance jane
+
+
+
+
+process-transaction 12 amount 20 fee 10 note “uber” payer bob receiver mary
+process-transaction 13 amount 20 fee 10 note “uber” payer bob receiver mary
+process-transaction 14 amount 20 fee 10 note “uber” payer bob receiver mary
+process-transaction 15 amount 20 fee 10 note “uber” payer bob receiver mary
+process-transaction 16 amount 20 fee 10 note “uber” payer bob receiver mary
+process-transaction 17 amount 20 fee 10 note “uber” payer bob receiver mary
+process-transaction 18 amount 20 fee 10 note “uber” payer bob receiver mary
+process-transaction 19 amount 20 fee 10 note “uber” payer bob receiver mary
+process-transaction 20 amount 20 fee 10 note “uber” payer bob receiver mary
+
+
+# expect balance of 200 for jane
+get-account-balance jane
+
+
+# expect balance of 2000 - 200 - 10 => 1790
+get-account-balance frank
+
+
+# expect balance of 3000 + 180 => 3180
+get-account-balance mary
+
+
+# expect balance of 3000 - 180 - 90 => 2730
+get-account-balance mary
+
+
+# show all account balances for master, mary, bob, bill, frank, and jane
+get-account-balances 
+
+
+# this transaction should fail since it exceeds the account balance for “bob”.
+process-transaction 21 amount 5000 fee 10 note “food” payer bob receiver mary
+
+
+# this transaction should fail since the minimum fee is not provided  
+process-transaction 22 amount 20 fee 5 note “food” payer bob receiver mary
+
+
+# validate the state of the blockchain
+Validate
