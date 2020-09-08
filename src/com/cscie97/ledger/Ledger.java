@@ -7,25 +7,94 @@ public class Ledger {
     private String description;
     private String seed;
 
-    private List<Account> accountList = new ArrayList<Account>();  
+    // Citation: Thank you "Anonymous Gear" on piazza for the inspiration for a temp block to write to.
+    private Block currentBlock; // Block currently being written to, once transaction limit is reached write this block to the block map and start a new currentBlock
+
+    private List<Account> accountList;
     private Block genesisBlock; // Initial blockchain block
     private Map <Integer, Block> blockMap = new HashMap <Integer, Block> ();    // Map of blocks with their associated ID values
 
-    public Ledger (String name, String desc, String seed) {
+    public Ledger (String name, String description, String seed) {
         this.name = name;
-        this.description = desc;
+        this.description = description;
         this.seed = seed;
 
-        this.genesisBlock = new Block(0, null, "harvard");
+        this.accountList = new ArrayList<Account>();
+        this.genesisBlock = new Block(1, null, "harvard");
+        this.currentBlock = this.genesisBlock;
+        this.blockMap.put(this.genesisBlock.getBlockNumber(), this.genesisBlock);
+        try {
+            this.createAccount("master");
+        } catch (LedgerException e) {
+            e.printStackTrace();
+        }
     }
+
+    // NOTE THIS MAY NOT BE NEEDED
+    /**
+     * Returns the block currently being updated with new transactions
+     * @return this.currentBlock The temp block yet to be saved to the block map
+     */
+    public Block getCurrentBlock () {
+        return this.currentBlock;
+    }
+
+    public Map <Integer, Block> getBlockMap () {
+        return this.blockMap;
+    }
+
+    public List<Account> getAccounts () {
+        return this.accountList;
+    }
+
+    public void addAccount (Account account) {
+        this.accountList.add(account);
+    }
+
+    public Account getAccount (String accountId) {
+        System.out.println(accountId);
+        for (Account a:this.accountList) {
+
+            // Return when we find a matching account id
+            if (a.getAddress().equals(accountId)) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+
     /**
      * Creates new account with unique ID and balance of 0.
      * @param  accountId the unique account identifier
      * @return unique account ID
      * TODO: may need to add an @Exception... 
      */
-    public String createAccount (String accountId) {
-        return "null";
+    public String createAccount (String accountId) throws LedgerException {
+        Account newAccount;
+        // Check if account already exists with that accountID
+        if (this.accountList.isEmpty() == true) {
+            newAccount = new Account(accountId, Integer.MAX_VALUE);
+        } else {
+            for (Account a:this.accountList) {
+
+                // If the provided account name is already used, return exception.
+                if (a.getAddress().equals(accountId)) {
+                    throw new LedgerException (
+                        "Ledger", "Failed while creating new account, ID already used"
+                    );
+                }
+            }
+            // Create new account, add it to the ledger account list
+            newAccount = new Account(accountId);
+        }
+        this.addAccount(newAccount);
+
+        // Obtain balance of new account
+        // Append new account and balance to current block's accountBalanceMap
+        int balance = newAccount.getBalance();
+        this.currentBlock.addAccountBalanceMap(newAccount, balance);
+        return accountId;
     }
     /**
      * Validate and process a transaction, adding to current block and updating balances if valid.
@@ -47,10 +116,13 @@ public class Ledger {
     }
 
     /**
-    public Map <Integer, Block> getAccountBalances () {
-        //return Map <Integer, Block> 
+     * Returns the mapping of all accounts and their associated balances for the given block
+     * @return this.accountBalanceMap   The account balance map requested
+     */
+    public Map <Account, Integer> getAccountBalances () {
+        return this.currentBlock.getAccountBalanceMap();
     }
-    */
+    
 
     /**
      * Retreives a block given a specific block number

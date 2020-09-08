@@ -3,13 +3,13 @@ package com.cscie97.ledger;
 public class Transaction {
     private String transactionId; 
     private String note;
-    private long amount;
-    private long fee;
+    private int amount;
+    private int fee;
     
     private Account payer;
     private Account reciever;
 
-    public Transaction (String identifier, long amount, long fee, String note, Account payer, Account reciever) {
+    public Transaction (String identifier, int amount, int fee, String note, Account payer, Account reciever) {
         this.transactionId = identifier;
         this.amount = amount;
         this.fee = fee;
@@ -19,7 +19,7 @@ public class Transaction {
         this.reciever = reciever;
     }
 
-    public Transaction (String identifier, long amount, long fee, Account payer, Account reciever) {
+    public Transaction (String identifier, int amount, int fee, Account payer, Account reciever) {
         this(identifier, amount, fee, "Default Transaction Note.", payer, reciever);
     }
 
@@ -27,11 +27,11 @@ public class Transaction {
         return this.transactionId;
     }
 
-    public long getAmount () {
+    public int getAmount () {
         return this.amount;
     }
 
-    public long getFee () {
+    public int getFee () {
         return this.fee;
     }
 
