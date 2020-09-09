@@ -182,9 +182,20 @@ public class Ledger {
         this.currentBlock.addTransactionList(transaction);
 
         // Process the transaction between accounts
-        //this.currentBlock.getAccountBalanceMap()
+        Account payerAcc = this.getAccount(transaction.getPayer());
+        Account recieverAcc = this.getAccount(transaction.getReciever());
+        Account masterAcc = this.getAccount("master");
 
-        // SHould return a messageDigest as the unique ID
+        payerAcc.setBalance(payerAcc.getBalance() - transaction.getAmount());
+        recieverAcc.setBalance(recieverAcc.getBalance() + transaction.getAmount());
+        masterAcc.setBalance(masterAcc.getBalance() + transaction.getFee());
+
+        // Update the account balance map with new account balances
+        this.currentBlock.addAccountBalanceMap(payerAcc, payerAcc.getBalance());
+        this.currentBlock.addAccountBalanceMap(recieverAcc, recieverAcc.getBalance());
+        this.currentBlock.addAccountBalanceMap(masterAcc, masterAcc.getBalance());
+
+        // Should return a messageDigest as the unique ID
         return transaction.getTransactionId();
     }
 
