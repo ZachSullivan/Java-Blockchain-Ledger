@@ -12,7 +12,8 @@ public class TestDriver {
         try {
             cliProcessor.processCommandFile(args[0]);
         } catch (CommandProcessorException | LedgerException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            System.out.println(e.toString());
         }
 
     }

@@ -7,9 +7,11 @@ public class Block {
     private String previousHash;
     private String hash;
 
-    private List<Transaction> transactionList = Arrays.asList(new Transaction[10]); // remove magic number
+    //private List<Transaction> transactionList = Arrays.asList(new Transaction[10]); // remove magic number
+    private List<Transaction> transactionList = new ArrayList<Transaction>(); // remove magic number
 
     // A map containing all accounts and their corresponding balance
+    //private Map <Account, Integer> accountBalanceMap = new HashMap <Account, Integer> ();
     private Map <Account, Integer> accountBalanceMap = new HashMap <Account, Integer> ();
 
     private Block previousBlock;
@@ -22,6 +24,14 @@ public class Block {
 
     public int getBlockNumber () {
         return this.blockNumber;
+    }
+
+    public List<Transaction> getTransactionList () {
+        return this.transactionList;
+    }
+
+    public void addTransactionList (Transaction transaction) {
+        this.transactionList.add(transaction);
     }
 
     // NOTE I MAY NOT NEED THIS GETTER

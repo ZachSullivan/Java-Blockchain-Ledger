@@ -18,7 +18,7 @@ get-account-balance mary
 #process-transaction <transaction-id> amount <amount> fee <fee> note <note> payer <account-address> receiver <account-address>
 
 
-process-transaction 1 amount 1000 fee 10 note “fund accountw payer master receiver mary
+process-transaction 1 amount 1000 fee 10 note “fund account” payer master receiver mary
 process-transaction 2 amount 1000 fee 10 note “fund account” payer master receiver bob
 process-transaction 3 amount 1000 fee 10 note “fund account” payer master receiver bill
 process-transaction 4 amount 1000 fee 10 note “fund account” payer master receiver frank

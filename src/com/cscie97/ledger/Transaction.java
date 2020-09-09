@@ -1,15 +1,31 @@
 package com.cscie97.ledger;
 
 public class Transaction {
+    public final int MAX_FEE = 10;
+    public final int MAX_NOTE_LEN = 1024;
     private String transactionId; 
     private String note;
     private int amount;
     private int fee;
     
-    private Account payer;
-    private Account reciever;
+    private String payer;
+    private String reciever;
 
-    public Transaction (String identifier, int amount, int fee, String note, Account payer, Account reciever) {
+    public Transaction (String identifier, int amount, int fee, String note, String payer, String reciever) {
+        this.transactionId = identifier;
+        this.amount = amount;
+        this.fee = fee;
+        this.note = note;
+
+        this.payer = payer;
+        this.reciever = reciever;
+    }
+
+
+    //private Account payer;
+    //private Account reciever;
+
+    /*public Transaction (String identifier, int amount, int fee, String note, Account payer, Account reciever) {
         this.transactionId = identifier;
         this.amount = amount;
         this.fee = fee;
@@ -21,7 +37,7 @@ public class Transaction {
 
     public Transaction (String identifier, int amount, int fee, Account payer, Account reciever) {
         this(identifier, amount, fee, "Default Transaction Note.", payer, reciever);
-    }
+    }*/
 
     public String getTransactionId () {
         return this.transactionId;
@@ -39,11 +55,19 @@ public class Transaction {
         return this.note;
     }
 
-    public Account getPayer () {
+    public String getPayer () {
+        return this.payer;
+    }
+
+    public String getReciever () {
+        return this.reciever;
+    }
+
+    /*public Account getPayer () {
         return this.payer;
     }
 
     public Account getReciever () {
         return this.reciever;
-    }
+    }*/
 }
