@@ -39,7 +39,6 @@ public class CommandProcessor {
      * @throws CommandProcessorException
      */
     public void processCommand(String command) throws LedgerException, CommandProcessorException {
-        System.out.println();
         // We need to extract substrings from the command string
         // start by splitting based on spaces
         // Note I found the quotations in the sample script were not the same ascii "chars I was testing for
@@ -53,129 +52,126 @@ public class CommandProcessor {
         String args[];
         Map<String, String> cmdMap;
         // Skip any blank commands or commands denoted as a comment (start with '#')
-        if (cmds.length > 1){
-            if (!cmds[0].equals("#")) {
-
-                // Process user command based on first element in command string
-                switch(cmds[0]) {
-                    case "create-ledger":
-                        System.out.println("Creating a new Ledger");
-                        // Create-ledger command should specify the following arguments
-                        args = new String[]{"create-ledger", "description", "seed"};
-                        
-                        // Populate a new mapping of arguments to properties
-                        cmdMap = parseArgs (cmds, args);
-                        //System.out.println("CMDMAP" + cmdMap);
-
-                        // Create a new ledger with the specified user args
-                        ledger = new Ledger(cmdMap.get("create-ledger"), cmdMap.get("description"), cmdMap.get("seed"));
-                        System.out.println("Created new ledger");
-                        //System.out.println("Current blockMap");
-                        ledger.getBlockMap();
-                        break;
-
-                    case "create-account":
-                        System.out.println("Creating a new Account");
-                        // Create-account command should specify the following arguments
-                        args = new String[] {"create-account"};
-                            
-                        // Populate a new mapping of arguments to properties
-                        cmdMap = parseArgs (cmds, args);
-
-                        ledger.createAccount(cmdMap.get("create-account"));
-                        System.out.println("Created new account");
-                        
-                        break;
-
-                    case "process-transaction":
-                        System.out.println("Processesing a new transaction");
-                        // process-transaction command should specify the following arguments
-                        args = new String[] {
-                            "process-transaction",
-                            "amount",
-                            "fee",
-                            "note",
-                            "payer",
-                            "receiver",
-                        };
-
-                        cmdMap = parseArgs (cmds, args);
-                        //System.out.println("CMDMAP" + cmdMap);
-
-                        int amount = 0;
-                        int fee = 0;
-                        // Some constructor arguments accept ints, must convert
-                        try {
-                            amount = Integer.parseInt(cmdMap.get("amount"));
-                            fee = Integer.parseInt(cmdMap.get("fee"));
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
-                        }
-
-                        /*Account payer, reciever;
-                        // Some constructor arguments accept Accounts, must convert
-                        System.out.println();
-                        payer = ledger.getAccount(cmdMap.get("payer"));
-                        reciever = ledger.getAccount(cmdMap.get("receiver"));
-
-                        //System.out.println("Accounts in ledger: " + ledger.getAccountBalances().keySet());    
+        //if (cmds.length > 1){
+        if (!cmds[0].equals("#")) {
+            System.out.println();
+            // Process user command based on first element in command string
+            switch(cmds[0]) {
+                // NEED TO CHECK COMMAND LINES ARE EXPECTED LENGTH
+                case "create-ledger":
+                    System.out.println("Creating a new Ledger");
+                    // Create-ledger command should specify the following arguments
+                    args = new String[]{"create-ledger", "description", "seed"};
                     
-                        if ((reciever == null) || (payer == null)) {
-                            throw new CommandProcessorException(
-                                "parseCommand", 
-                                "Unable to find account while processing transaction", 
-                                120
-                            );
-                        }
+                    // Populate a new mapping of arguments to properties
+                    cmdMap = parseArgs (cmds, args);
+                    //System.out.println("CMDMAP" + cmdMap);
 
-                        Transaction transaction = new Transaction(
-                            cmdMap.get("process-transaction"),
-                            amount,
-                            fee,
-                            cmdMap.get("note"),
-                            payer,
-                            reciever
-                        );*/
+                    // Create a new ledger with the specified user args
+                    ledger = new Ledger(cmdMap.get("create-ledger"), cmdMap.get("description"), cmdMap.get("seed"));
+                    System.out.println("Created new ledger");
+                    //System.out.println("Current blockMap");
+                    ledger.getBlockMap();
+                    break;
 
-                        Transaction transaction = new Transaction(
-                            cmdMap.get("process-transaction"),
-                            amount,
-                            fee,
-                            cmdMap.get("note"),
-                            cmdMap.get("payer"),
-                            cmdMap.get("receiver")
+                case "create-account":
+                    System.out.println("Creating a new Account");
+                    // Create-account command should specify the following arguments
+                    args = new String[] {"create-account"};
+                        
+                    // Populate a new mapping of arguments to properties
+                    cmdMap = parseArgs (cmds, args);
+
+                    ledger.createAccount(cmdMap.get("create-account"));
+                    System.out.println("Created new account");
+                    
+                    break;
+
+                case "process-transaction":
+                    // process-transaction command should specify the following arguments
+                    args = new String[] {
+                        "process-transaction",
+                        "amount",
+                        "fee",
+                        "note",
+                        "payer",
+                        "receiver",
+                    };
+
+                    cmdMap = parseArgs (cmds, args);
+                    System.out.println("Processesing a new transaction: " + cmdMap.get("process-transaction"));
+
+                    int amount = 0;
+                    int fee = 0;
+                    // Some constructor arguments accept ints, must convert
+                    try {
+                        amount = Integer.parseInt(cmdMap.get("amount"));
+                        fee = Integer.parseInt(cmdMap.get("fee"));
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                    }
+
+                    Transaction transaction = new Transaction(
+                        cmdMap.get("process-transaction"),
+                        amount,
+                        fee,
+                        cmdMap.get("note"),
+                        cmdMap.get("payer"),
+                        cmdMap.get("receiver")
+                    );
+
+                    ledger.processTransaction(transaction);
+                    System.out.println("Processed a new transaction");
+                    break;
+
+                case "get-account-balance":
+                    System.out.println("Retrieving account balance");
+                    args = new String[] {
+                        "get-account-balance"
+                    };
+                    cmdMap = parseArgs (cmds, args);
+                    int accountBalance = ledger.getAccountBalance(cmdMap.get("get-account-balance"));
+                    if (accountBalance < 0) {
+                        System.out.println("Couldn't retrieve account balance");
+                    } else {
+                        System.out.println(
+                            cmdMap.get("get-account-balance")
+                            + "'s account balance: "
+                            + accountBalance
                         );
-
-                        ledger.processTransaction(transaction);
-                        //System.out.println("TransacionList " + ledger.getCurrentBlock().getTransactionList());
-                        //System.out.println("LIST LENGTH " + ledger.getCurrentBlock().getTransactionList().size());
-                        break;
-
-                    case "get-account-balance":
-                        //System.out.println("TRIGGERED A CASE!!!!");
-                        break;
+                        
+                        System.out.println("Retrieved account balance");
+                    }
+                    break;
+                
+                case "get-account-balances":
+                    System.out.println("Retrieving account balances");
+                    Map <Account, Integer> accountBalances = ledger.getAccountBalances();
+                    if (accountBalances == null) {
+                        System.out.println("Couldn't retrieve account balance map");
+                    } else {
+                        System.out.println(accountBalances);
+                    }
                     
-                    case "get-account-balances":
-                        //System.out.println("TRIGGERED A CASE!!!!");
-                        break;
-                    
-                    case "get-transaction":
-                        //System.out.println("TRIGGERED A CASE!!!!");
-                        break;
-                    
-                    case "validate":
-                        //System.out.println("TRIGGERED A CASE!!!!");
-                        break;
-                }
-
-                /*for(String s: cmds){
-                    System.out.println(s);
-                    
-                }
-                System.out.println();*/
+                    break;
+                
+                case "get-transaction":
+                    //System.out.println("TRIGGERED A CASE!!!!");
+                    break;
+                
+                case "validate":
+                    //System.out.println("TRIGGERED A CASE!!!!");
+                    break;
             }
+
+            /*for(String s: cmds){
+                System.out.println(s);
+                
+            }
+            System.out.println();*/
         }
     }
+   // }
 
     /**
      * Processes a file containing multiple commands, passes extracted command to

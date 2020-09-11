@@ -16,10 +16,23 @@ public class Block {
 
     private Block previousBlock;
 
-    public Block (int id, String prevHash, String hashVal) {
+    /**
+     *  In order to create a new block, we need to provide a unique hash value for the PREVIOUS block.
+     *  this hash value will be computed from each transaction in the block's list of transactions.
+     * 
+     *  To do this, ill need to produce a hashlist of all transaction hashes in the given block.
+     *  (this could be done by passing in an argument of transaction.hash as a list to a merkle tree function)
+     *  (In the merkle tree function) I'll then need to iterate through the hashlist param
+     *  ill take a pair (every 2) hashList values and produce a new hash that will be appended to a parentHashList
+     *  Note Ill keep iterating over the hashlist until I reach the end. 
+     * (if I can't get a pair of 2 hashes, then reuse the same hash twice)
+     *  Ill then recursively call the merkletree function, passing in the new parent list (repeating the previous step)
+     *  Base case will be when the hashList param has a length of 1
+     *  see: https://medium.com/@vinayprabhu19/merkel-tree-in-java-b45093c8c6bd
+     */
+
+    public Block (int id) {
         this.blockNumber = id;
-        this.previousHash = prevHash;
-        this.hash = hashVal;
     }
 
     public int getBlockNumber () {
@@ -34,6 +47,17 @@ public class Block {
         this.transactionList.add(transaction);
     }
 
+    public void setPrevHash (String hash) {
+        this.previousHash = hash;
+    }
+
+    public String getHash () {
+        return this.hash;
+    }
+
+    public void setHash (String hash) {
+        this.hash = hash;
+    }
     // NOTE I MAY NOT NEED THIS GETTER
     /**
      * Returns the mapping of all accounts and their associated balances for the given block
@@ -49,8 +73,10 @@ public class Block {
      * @param balance The account's balanced to be added
      * @return return 0 on success, 1 on failure
      */
-    public int addAccountBalanceMap (Account account, int balance) {
-        this.accountBalanceMap.put(account, balance);
+    public int addAccountBalanceMap (Account key, int value) {
+        System.out.println("OLD ACCOUNTMAP: " + this.accountBalanceMap.get(key));
+        this.accountBalanceMap.put(key, value);
+        System.out.println("NEW ACCOUNTMAP: " + this.accountBalanceMap.get(key));
         return 0;
     }
 }

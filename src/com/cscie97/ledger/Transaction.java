@@ -1,6 +1,8 @@
 package com.cscie97.ledger;
 
-public class Transaction {
+import java.io.Serializable;
+
+public class Transaction implements Serializable {
     public final int MAX_FEE = 10;
     public final int MAX_NOTE_LEN = 1024;
     private String transactionId; 
