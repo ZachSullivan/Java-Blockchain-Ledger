@@ -74,9 +74,13 @@ public class Block {
      * @return return 0 on success, 1 on failure
      */
     public int addAccountBalanceMap (Account key, int value) {
-        System.out.println("OLD ACCOUNTMAP: " + this.accountBalanceMap.get(key));
+        System.out.println("OLD ACCOUNT Balance: " + this.accountBalanceMap.get(key));
         this.accountBalanceMap.put(key, value);
-        System.out.println("NEW ACCOUNTMAP: " + this.accountBalanceMap.get(key));
+        System.out.println("NEW ACCOUNT Balance: " + this.accountBalanceMap.get(key));
         return 0;
+    }
+
+    public void deepCopyMap (Map <Account, Integer> oldMap) {
+        this.accountBalanceMap = Map.copyOf(oldMap);
     }
 }

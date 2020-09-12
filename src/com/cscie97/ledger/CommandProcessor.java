@@ -99,7 +99,12 @@ public class CommandProcessor {
                     };
 
                     cmdMap = parseArgs (cmds, args);
+
                     System.out.println("Processesing a new transaction: " + cmdMap.get("process-transaction"));
+                    System.out.println("transaction amount: " + cmdMap.get("amount"));
+                    System.out.println("transaction fee: " + cmdMap.get("fee"));
+                    System.out.println("TO: " + cmdMap.get("receiver"));
+                    System.out.println("FROM: " + cmdMap.get("payer"));
 
                     int amount = 0;
                     int fee = 0;
