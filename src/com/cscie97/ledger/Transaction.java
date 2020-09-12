@@ -65,11 +65,14 @@ public class Transaction implements Serializable {
         return this.reciever;
     }
 
-    /*public Account getPayer () {
-        return this.payer;
-    }
-
-    public Account getReciever () {
-        return this.reciever;
-    }*/
+    public String toString() { 
+        String result = (
+            "Transaction " + this.getTransactionId() + 
+            ": amount: " + this.getAmount() + 
+            " from \"" + this.getPayer() + 
+            "\" to \"" + this.getReciever() +
+            "\" processing fee: " +  this.getFee()
+        ); 
+        return result;
+    } 
 }

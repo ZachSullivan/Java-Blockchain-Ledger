@@ -52,10 +52,7 @@ public class Ledger {
     }
 
     public Account getAccount (String accountId) {
-        System.out.println(accountId);
         for (Account a:this.currentBlock.getAccountBalanceMap().keySet()) {
-        //for (Account a:this.getAccountBalances().keySet()) {
-
             // Return when we find a matching account id
             if (a.getAddress().equals(accountId)) {
                 return a;
@@ -94,7 +91,7 @@ public class Ledger {
             }
         } catch(LedgerException e) {
             System.out.println(e);
-            return "null";
+            return null;
         }
 
         // Obtain balance of new account
@@ -110,9 +107,6 @@ public class Ledger {
      * @return transactionId   Unique identifier for the transaction.
      */
     public String processTransaction (Transaction transaction) throws LedgerException {
-
-        // Make sure to verfiy that the current block transaction list doesnt exceed 10 transactions
-        // if it does, then spawn a new block, may want to do a try catch or an ifelse for this
 
         // Verify the unique id
         List<Transaction> transactionList = this.currentBlock.getTransactionList();
@@ -136,21 +130,14 @@ public class Ledger {
             return null;
         }
 
-        //System.out.println("PAYER ACCOUNT BALANCE: " +this.getAccount(transaction.getPayer()).getBalance());
-
         // Verify the payer and reciever accounts exist, and amount does not exceed payer's balance
         try {
-            //if (this.getAccountBalance(transaction.getPayer()) < transaction.getAmount()) {
             if (this.getAccount(transaction.getPayer()).getBalance() < transaction.getAmount()) {
                 throw new LedgerException (
                     "Ledger", "Failed validating transaction, amount exceeds payere's account balance"
                 );
             }
             // Precalculate transaction from payer, taking into account fee
-            /*int newBalance = (
-                (this.getAccountBalance(transaction.getReciever()) - transaction.getAmount()) 
-                + transaction.getFee()
-            );*/
             int newBalance = (
                 (this.getAccount(transaction.getReciever()).getBalance() - transaction.getAmount()) 
                 + transaction.getFee()
@@ -207,111 +194,41 @@ public class Ledger {
         Account recieverAcc = this.getAccount(transaction.getReciever());
         Account masterAcc = this.getAccount("master");
 
-        // NEED TO CHECK THAT TRANSACTION LIST IS STILL UNDER 10
-        // If not, then make a new block, and save the old one
+        // Transfer has been validated, add to transaction list
+        this.currentBlock.addTransactionList(transaction);
+
+        // Update account balances for master, payer and reciever
+        int payerOldBalance = payerAcc.getBalance();
+        int payerNewBalance = (payerOldBalance - transaction.getAmount()) - transaction.getFee();
+        payerAcc.setBalance(payerNewBalance);
+
+        int recieverOldBalance = recieverAcc.getBalance();
+        int recieverNewBalance = recieverOldBalance + transaction.getAmount();
+        recieverAcc.setBalance(recieverNewBalance);
+
+        int masterOldBalance = masterAcc.getBalance();
+        int masterNewBalance = masterOldBalance + transaction.getFee();
+        masterAcc.setBalance(masterNewBalance);
+
         // Check if we have reached the transaction amount limit for this block
-        if (this.currentBlock.getTransactionList().size() < 9) {
-            System.out.println("NORMAL TRANSACTION");
-
-            // Transfer has been validated, add to transaction list
-            this.currentBlock.addTransactionList(transaction);
-
-            // Update each account balances
-            int payerOldBalance = payerAcc.getBalance();
-            System.out.println("payer's balance BEFORE transaction: " + payerOldBalance);
-            int payerNewBalance = (payerOldBalance - transaction.getAmount()) - transaction.getFee();
-            payerAcc.setBalance(payerNewBalance);
-            System.out.println("payer's balance AFTER transaction: " + payerAcc.getBalance());
-            System.out.println("payer's balance DIFFERENCE: " + (payerOldBalance - payerAcc.getBalance()));
-
-            int recieverOldBalance = recieverAcc.getBalance();
-            System.out.println("reciever's balance BEFORE transaction: " + recieverOldBalance);
-            int recieverNewBalance = recieverOldBalance + transaction.getAmount();
-            recieverAcc.setBalance(recieverNewBalance);
-            System.out.println("reciever's balance AFTER transaction: " + recieverAcc.getBalance());
-            System.out.println("reciever's balance DIFFERENCE: " + (recieverAcc.getBalance() - recieverOldBalance));
-
-            int masterOldBalance = masterAcc.getBalance();
-            System.out.println("master's balance BEFORE transaction: " + masterOldBalance);
-            int masterNewBalance = masterOldBalance + transaction.getFee();
-            masterAcc.setBalance(masterNewBalance);
-            System.out.println("master's balance AFTER transaction: " + masterAcc.getBalance());
-            System.out.println("master's balance DIFFERENCE: " + (masterAcc.getBalance() - masterOldBalance));
-
-        } else {
-            // Add the newly processed transaction to this new block's transactionList
-            this.currentBlock.addTransactionList(transaction);
-
-            // Update the account balance map with new account balances
-            int payerOldBalance = payerAcc.getBalance();
-            System.out.println("payer's balance BEFORE transaction: " + payerOldBalance);
-            int payerNewBalance = (payerOldBalance - transaction.getAmount()) - transaction.getFee();
-            payerAcc.setBalance(payerNewBalance);
-            System.out.println("payer's balance AFTER transaction: " + payerAcc.getBalance());
-            System.out.println("payer's balance DIFFERENCE: " + (payerOldBalance - payerAcc.getBalance()));
-
-            int recieverOldBalance = recieverAcc.getBalance();
-            System.out.println("reciever's balance BEFORE transaction: " + recieverOldBalance);
-            int recieverNewBalance = recieverOldBalance + transaction.getAmount();
-            recieverAcc.setBalance(recieverNewBalance);
-            System.out.println("reciever's balance AFTER transaction: " + recieverAcc.getBalance());
-            System.out.println("reciever's balance DIFFERENCE: " + (recieverAcc.getBalance() - recieverOldBalance));
-
-            int masterOldBalance = masterAcc.getBalance();
-            System.out.println("master's balance BEFORE transaction: " + masterOldBalance);
-            int masterNewBalance = masterOldBalance + transaction.getFee();
-            masterAcc.setBalance(masterNewBalance);
-            System.out.println("master's balance AFTER transaction: " + masterAcc.getBalance());
-            System.out.println("master's balance DIFFERENCE: " + (masterAcc.getBalance() - masterOldBalance));
-
-            // Update the block's account map with each transaction account
-
-            /*int newBalance = (payerAcc.getBalance() - transaction.getAmount());
-            this.currentBlock.addAccountBalanceMap(payerAcc, newBalance);
-            payerAcc.setBalance(newBalance);
-
-            newBalance = (recieverAcc.getBalance() + transaction.getAmount());
-            this.currentBlock.addAccountBalanceMap(recieverAcc, newBalance);
-            recieverAcc.setBalance(newBalance);
-
-            newBalance = (masterAcc.getBalance() + transaction.getFee());
-            this.currentBlock.addAccountBalanceMap(masterAcc, newBalance);
-            masterAcc.setBalance(newBalance);
-            
-            recieverAcc.setBalance(recieverAcc.getBalance() + transaction.getAmount());
-            masterAcc.setBalance(masterAcc.getBalance() + transaction.getFee());*/
+        if (this.currentBlock.getTransactionList().size() > 9) {
 
             // We've reached the transaction limit for ths block, so we must create a new block
-            // First populate the current block's hash parameter
-            // To do this, we also need a hash for each transaction in the transaction list
             ArrayList<String> transHashList = new ArrayList<String> ();
             for (Transaction t:this.currentBlock.getTransactionList()){
 
-                
-                System.out.println("updating map with Transaction: " + t);
-                System.out.println("Transaction has payer: " + t.getPayer());
-                Account payer = this.getAccount(t.getPayer());
-                System.out.println("Payer balance: " + payer.getBalance());
+                // Update the account balance mapping for every transaction in transaction list       
+                payerAcc = this.getAccount(t.getPayer());
+                recieverAcc = this.getAccount(t.getReciever());
+                masterAcc = this.getAccount("master");
 
-                System.out.println("Transaction has reciever: " + t.getReciever());  
-                Account reciever = this.getAccount(t.getReciever());
-                System.out.println("Reciever balance: " + reciever.getBalance());
- 
-                Account master = this.getAccount("master");
-                System.out.println("Master balance: " + master.getBalance());
-
-                this.currentBlock.addAccountBalanceMap(payer, payer.getBalance());
-                System.out.println("Updated map for payer.");
-
-                this.currentBlock.addAccountBalanceMap(reciever, reciever.getBalance());
-                System.out.println("Updated map for reciever.");
-
-                this.currentBlock.addAccountBalanceMap(master, master.getBalance());
-                System.out.println("Updated map for master.");
+                this.currentBlock.addAccountBalanceMap(payerAcc, payerAcc.getBalance());
+                this.currentBlock.addAccountBalanceMap(recieverAcc, recieverAcc.getBalance());
+                this.currentBlock.addAccountBalanceMap(masterAcc, masterAcc.getBalance());
 
 
-                System.out.println("Updated map with Transaction: " + t);
-                
+                // Populate the current block's hash parameter
+                // To do this, we also need a hash for each transaction in the transaction list
                 try {
                     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
                     ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
@@ -329,35 +246,33 @@ public class Ledger {
                     }
                 } catch (LedgerException | IOException e) {
                     System.out.println(e);
+                    return null;
                 }
             }
 
+            // Compute and assign a hash to the block
             ArrayList<String> blockHash = merkleTree(transHashList);
-            System.out.println("BLOCKHASH: " + blockHash.get(0));
             this.currentBlock.setHash(blockHash.get(0));
 
             // Add the current block to the block map
             this.blockMap.put(this.currentBlock.getBlockNumber(), this.currentBlock);
-            System.out.println("blockMap: " + this.blockMap);
 
             // Instanciate a new block, assign the prevousHash param the hash of the prev block
-            // Copy the accountBalanceMap from the last block to the new block
+            // Deep copy the accountBalanceMap from the last block to the new block
             Block oldBlock = currentBlock;
             Map <Account, Integer> oldBlockMap = oldBlock.getAccountBalanceMap();
 
             this.currentBlock = new Block((this.blockMap.size() + 1));
             this.currentBlock.setPrevHash(oldBlock.getHash());
-            //this.currentBlock.deepCopyMap(oldBlockMap);
+
             for (Entry <Account, Integer> blockMapEntry: oldBlockMap.entrySet()) {
                 // Update all account balances for accounts in the current accountMap
                 blockMapEntry.getKey().setBalance(blockMapEntry.getValue());
-                // Copy the accountBalanceEntry to the new block accountBalanceMap
+                // Deep copy the accountBalanceEntry to the new block accountBalanceMap
                 this.currentBlock.addAccountBalanceMap(blockMapEntry.getKey(), blockMapEntry.getValue());
             }
         }
 
-
-        // Should return a messageDigest as the unique ID
         return transaction.getTransactionId();
     }
 
@@ -429,7 +344,6 @@ public class Ledger {
      * @return balance  The balance of the given account
      */
     public int getAccountBalance (String address)  {
-        //System.out.println(address);
         // Iterate through all accounts in the account balance map
         try {
             for (Entry <Account, Integer> mapEntry: this.getAccountBalances().entrySet()) {
@@ -437,12 +351,7 @@ public class Ledger {
                     return mapEntry.getValue();
                 }
             }
-            /*for (Account a:this.getAccountBalances().keySet()) {
-                // Return when we find a matching account id
-                if (a.getAddress().equals(address)) {
-                    return a.getBalance();
-                }
-            }*/
+           
             // We have processed all accounts in the map, account doesn't exist 
             throw new LedgerException (
                 "Ledger", "Unabled to get account balance, account doesn't exist."
@@ -459,7 +368,6 @@ public class Ledger {
      */
     public Map <Account, Integer> getAccountBalances () {
         Entry <Integer, Block>  recentBlock = this.blockMap.lastEntry();
-        System.out.println("recentBlock: " + recentBlock);
         try {
             if (recentBlock == null) {
                 throw new LedgerException (
@@ -491,17 +399,73 @@ public class Ledger {
      * Retreives a transaction given a specific transaction number
      * @param transactionId   The identifier of the transaction to be retreived
      * @return transaction    The resulting transaction given the queried id
-     
+     */
     public Transaction getTransaction (String transactionId) {
-        return new Transaction();
+        Entry <Integer, Block>  recentBlock = this.blockMap.lastEntry();
+        try {
+            if (recentBlock == null) {
+                throw new LedgerException (
+                    "Ledger", "Unabled to get transaction, blockMap is empty (no blocks committed yet)."
+                );
+            } else {
+                return recentBlock.getValue().getTransaction(transactionId);
+            }
+        } catch(LedgerException e) {
+            System.out.println(e);
+            return null;
+        }
     }
-    */
+    
 
     /**
      * Valdiate current blockchain state, max of 10 transactions per block and balances total to max value
      */
     public void validate () {
         // If I need to validate hashes, comparing block hash and the prevHash of the next block should do...
+        // for each block in the block chain
+        String prevHash = null;
+        for (Entry <Integer, Block> blockEntry:this.blockMap.entrySet()) {
+            Block block = blockEntry.getValue();
+            try {
+                // Validate the previous block's hash matches the current block's record of the prevous block's hash
+                if (block.getPrevHash() != prevHash) {
+                    throw new LedgerException (
+                        "Ledger", "Unabled to validate block, hash values missmatch between blocks."
+                    );
+                } else {
+                    System.out.println("Block: " + blockEntry.getKey() + " meets hash req.");
+                }
+
+                // Validate each completed block has exactly 10 transactions.
+                if (block.getTransactionList().size() != 10) {
+                    throw new LedgerException (
+                        "Ledger", "Unabled to validate block, block doesn't meet transaction count limit."
+                    );
+                } else {
+                    System.out.println("Block: " + blockEntry.getKey() + " meets transaction limit.");
+                }
+
+                // Validate account balances total to the max value
+                int blockBalance = 0;
+                for (Entry <Account, Integer> accountEntry:block.getAccountBalanceMap().entrySet()) {
+                    blockBalance += accountEntry.getValue();
+                }
+                if (blockBalance != Integer.MAX_VALUE) {
+                    throw new LedgerException (
+                        "Ledger", "Unabled to validate block, block accounts don't total to max value."
+                    );
+                } else {
+                    System.out.println("Block: " + blockEntry.getKey() + " account balances match expected total.");
+                }
+                    
+            } catch(LedgerException e) {
+                System.out.println(e);
+                break;
+            }
+            prevHash = block.getHash();
+        }
+        
+        
     }
 }
 

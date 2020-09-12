@@ -43,12 +43,25 @@ public class Block {
         return this.transactionList;
     }
 
+    public Transaction getTransaction (String transaction) {
+        for (Transaction t:this.transactionList) {
+            if (t.getTransactionId().equals(transaction)) {
+                return t;
+            }
+        }
+        return null;
+    }
+
     public void addTransactionList (Transaction transaction) {
         this.transactionList.add(transaction);
     }
 
     public void setPrevHash (String hash) {
         this.previousHash = hash;
+    }
+
+    public String getPrevHash () {
+        return this.previousHash;
     }
 
     public String getHash () {
@@ -58,7 +71,6 @@ public class Block {
     public void setHash (String hash) {
         this.hash = hash;
     }
-    // NOTE I MAY NOT NEED THIS GETTER
     /**
      * Returns the mapping of all accounts and their associated balances for the given block
      * @return this.accountBalanceMap   The account balance map requested
@@ -73,14 +85,7 @@ public class Block {
      * @param balance The account's balanced to be added
      * @return return 0 on success, 1 on failure
      */
-    public int addAccountBalanceMap (Account key, int value) {
-        System.out.println("OLD ACCOUNT Balance: " + this.accountBalanceMap.get(key));
+    public void addAccountBalanceMap (Account key, int value) {
         this.accountBalanceMap.put(key, value);
-        System.out.println("NEW ACCOUNT Balance: " + this.accountBalanceMap.get(key));
-        return 0;
-    }
-
-    public void deepCopyMap (Map <Account, Integer> oldMap) {
-        this.accountBalanceMap = Map.copyOf(oldMap);
     }
 }

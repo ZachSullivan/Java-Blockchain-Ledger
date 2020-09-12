@@ -54,61 +54,56 @@ public class CommandProcessor {
         // Skip any blank commands or commands denoted as a comment (start with '#')
         //if (cmds.length > 1){
         if (!cmds[0].equals("#")) {
-            System.out.println();
             // Process user command based on first element in command string
             switch(cmds[0]) {
                 // NEED TO CHECK COMMAND LINES ARE EXPECTED LENGTH
                 case "create-ledger":
                     System.out.println("Creating a new Ledger");
+
                     // Create-ledger command should specify the following arguments
                     args = new String[]{"create-ledger", "description", "seed"};
-                    
                     // Populate a new mapping of arguments to properties
                     cmdMap = parseArgs (cmds, args);
-                    //System.out.println("CMDMAP" + cmdMap);
 
                     // Create a new ledger with the specified user args
                     ledger = new Ledger(cmdMap.get("create-ledger"), cmdMap.get("description"), cmdMap.get("seed"));
                     System.out.println("Created new ledger");
-                    //System.out.println("Current blockMap");
                     ledger.getBlockMap();
                     break;
 
                 case "create-account":
                     System.out.println("Creating a new Account");
+
                     // Create-account command should specify the following arguments
-                    args = new String[] {"create-account"};
-                        
+                    args = new String[] {"create-account"};    
                     // Populate a new mapping of arguments to properties
                     cmdMap = parseArgs (cmds, args);
 
-                    ledger.createAccount(cmdMap.get("create-account"));
-                    System.out.println("Created new account");
-                    
+                    if (ledger.createAccount(cmdMap.get("create-account")) != null) {
+                        System.out.println("Created new account.");
+                    } else {
+                        System.out.println("Failed to created account.");
+                    }
                     break;
 
                 case "process-transaction":
+                    System.out.println("Processesing a new transaction.");
+
                     // process-transaction command should specify the following arguments
                     args = new String[] {
-                        "process-transaction",
+                        "process-transaction",  
                         "amount",
                         "fee",
                         "note",
                         "payer",
                         "receiver",
                     };
-
                     cmdMap = parseArgs (cmds, args);
-
-                    System.out.println("Processesing a new transaction: " + cmdMap.get("process-transaction"));
-                    System.out.println("transaction amount: " + cmdMap.get("amount"));
-                    System.out.println("transaction fee: " + cmdMap.get("fee"));
-                    System.out.println("TO: " + cmdMap.get("receiver"));
-                    System.out.println("FROM: " + cmdMap.get("payer"));
 
                     int amount = 0;
                     int fee = 0;
-                    // Some constructor arguments accept ints, must convert
+
+                    // Some Transaction constructor arguments accept ints, must convert
                     try {
                         amount = Integer.parseInt(cmdMap.get("amount"));
                         fee = Integer.parseInt(cmdMap.get("fee"));
@@ -116,7 +111,7 @@ public class CommandProcessor {
                         e.printStackTrace();
                     }
 
-                    Transaction transaction = new Transaction(
+                    Transaction transaction = new Transaction (
                         cmdMap.get("process-transaction"),
                         amount,
                         fee,
@@ -125,55 +120,68 @@ public class CommandProcessor {
                         cmdMap.get("receiver")
                     );
 
-                    ledger.processTransaction(transaction);
-                    System.out.println("Processed a new transaction");
+                    if (ledger.processTransaction(transaction) != null ) {
+                        System.out.println(transaction.toString());
+                        System.out.println("Processed transaction.");
+                    } else {
+                        System.out.println("Failed to process transaction.");
+                    }
                     break;
 
                 case "get-account-balance":
                     System.out.println("Retrieving account balance");
+
                     args = new String[] {
                         "get-account-balance"
                     };
                     cmdMap = parseArgs (cmds, args);
+
                     int accountBalance = ledger.getAccountBalance(cmdMap.get("get-account-balance"));
-                    if (accountBalance < 0) {
-                        System.out.println("Couldn't retrieve account balance");
-                    } else {
+                    if (accountBalance >= 0) {
                         System.out.println(
                             cmdMap.get("get-account-balance")
                             + "'s account balance: "
                             + accountBalance
                         );
-                        
-                        System.out.println("Retrieved account balance");
+                    } else {
+                        System.out.println("Failed to retrieve account balance.");
                     }
                     break;
                 
                 case "get-account-balances":
                     System.out.println("Retrieving account balances");
                     Map <Account, Integer> accountBalances = ledger.getAccountBalances();
-                    if (accountBalances == null) {
-                        System.out.println("Couldn't retrieve account balance map");
-                    } else {
+                    if (accountBalances != null) {
                         System.out.println(accountBalances);
+                    } else {
+                        System.out.println("Failed to retrieve account balance map.");
                     }
                     
                     break;
                 
                 case "get-transaction":
-                    //System.out.println("TRIGGERED A CASE!!!!");
+                    
+                    args = new String[] {"get-transaction"};
+                    cmdMap = parseArgs (cmds, args);
+                    System.out.println("Retrieving transaction " + cmdMap.get("get-transaction"));
+                    Transaction t = ledger.getTransaction(cmdMap.get("get-transaction"));
+                    if (t != null) {
+                        System.out.println(t.toString());
+                    } else {
+                        System.out.println("Failed to retrieve transaction.");
+                    }
+
                     break;
                 
                 case "validate":
-                    //System.out.println("TRIGGERED A CASE!!!!");
+                    System.out.println("Validating blockchain");
+                    ledger.validate();
+                    break;
+                
+                default:
+                    System.out.println();
                     break;
             }
-
-            /*for(String s: cmds){
-                System.out.println(s);
-                
-            }
-            System.out.println();*/
         }
     }
    // }
@@ -198,7 +206,7 @@ public class CommandProcessor {
             try {
                 Scanner fileScanner = new Scanner(testScript);
                 while (fileScanner.hasNextLine()) {
-                    processCommand(fileScanner.nextLine());   
+                    processCommand(fileScanner.nextLine()); 
                 }  
     
                 fileScanner.close();

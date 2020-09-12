@@ -21,19 +21,12 @@ public class Account {
         this.balance = amount;
     }
 
-    /*public void incrementBalance (long amount) {
-        if ((this.balance + amount) <= Integer.MAX_VALUE) {
-            this.balance += amount;
-        }
-    }
-
-    public void decrementBalance (long amount) {
-        if ((this.balance - amount) >= 0) {
-            this.balance -= amount;
-        }
-    }*/
-
     public int getBalance () {
         return this.balance;
     }
+
+    public String toString() { 
+        String result = (this.getAddress() + "'s account"); 
+        return result;
+    } 
 }
