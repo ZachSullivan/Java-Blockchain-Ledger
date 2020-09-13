@@ -5,7 +5,6 @@ import java.util.Map.Entry;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
-import java.math.BigInteger;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
@@ -16,11 +15,15 @@ public class Ledger {
     private String seed;
 
     // Citation: Thank you "Anonymous Gear" on piazza for the inspiration for a temp block to write to.
-    private Block currentBlock; // Block currently being written to, once transaction limit is reached write this block to the block map and start a new currentBlock
+    // Block currently being written to
+    // .. once transaction limit is reached write this block to the block map and start a new currentBlock
+    private Block currentBlock;
 
-    private Block genesisBlock; // Initial blockchain block
-    //private Map <Integer, Block> blockMap = new HashMap <Integer, Block> ();    // Map of blocks with their associated ID values
-    private NavigableMap <Integer, Block> blockMap = new TreeMap <Integer, Block> ();    // Map of blocks with their associated ID values
+    // Initial blockchain block
+    private Block genesisBlock;
+
+    // Map of blocks with their associated ID values
+    private NavigableMap <Integer, Block> blockMap = new TreeMap <Integer, Block> ();
     
     public Ledger (String name, String description, String seed) {
         this.name = name;
@@ -29,8 +32,7 @@ public class Ledger {
 
         this.genesisBlock = new Block(1);
         this.currentBlock = this.genesisBlock;
-        // May want to wait unil transactions are complete before commiting to block map
-        //this.blockMap.put(this.genesisBlock.getBlockNumber(), this.genesisBlock);
+
         try {
             this.createAccount("master");
         } catch (LedgerException e) {
@@ -38,13 +40,12 @@ public class Ledger {
         }
     }
 
-    // NOTE THIS MAY NOT BE NEEDED
-    /**
-     * Returns the block currently being updated with new transactions
-     * @return this.currentBlock The temp block yet to be saved to the block map
-     */
-    public Block getCurrentBlock () {
-        return this.currentBlock;
+    public String getName() {
+        return this.name;
+    }
+
+    public String getDescription () {
+        return this.description;
     }
 
     public Map <Integer, Block> getBlockMap () {
@@ -53,7 +54,7 @@ public class Ledger {
 
     public Account getAccount (String accountId) {
         for (Account a:this.currentBlock.getAccountBalanceMap().keySet()) {
-            // Return when we find a matching account id
+            // Return account that matches account id
             if (a.getAddress().equals(accountId)) {
                 return a;
             }
@@ -72,9 +73,8 @@ public class Ledger {
     public String createAccount (String accountId) throws LedgerException {
         Account newAccount = null;
         // Check if account already exists with that accountID
-        try {
+        //try {
             if (this.currentBlock.getAccountBalanceMap() == null || this.currentBlock.getAccountBalanceMap().isEmpty() == true) {
-            //if (this.getAccountBalances() == null || this.getAccountBalances().isEmpty() == true) {
                 newAccount = new Account(accountId, Integer.MAX_VALUE);
             } else {
                 for (Account a:this.currentBlock.getAccountBalanceMap().keySet()) {
@@ -89,10 +89,10 @@ public class Ledger {
                 // Create new account, add it to the ledger account list
                 newAccount = new Account(accountId);
             }
-        } catch(LedgerException e) {
+       /* } catch(LedgerException e) {
             System.out.println(e);
             return null;
-        }
+        }*/
 
         // Obtain balance of new account
         // Append new account and balance to current block's accountBalanceMap
@@ -110,84 +110,61 @@ public class Ledger {
 
         // Verify the unique id
         List<Transaction> transactionList = this.currentBlock.getTransactionList();
-        try {
-            if (transactionList != null) {
-                for (Transaction t: transactionList) {
-                    
-                    if (t.getTransactionId().equals(transaction.getTransactionId())) {
-                        throw new LedgerException (
-                            "Ledger", "Failed validating transaction, ID already used"
-                        );
-                    }
+
+        if (transactionList != null) {
+            for (Transaction t: transactionList) {
+                
+                if (t.getTransactionId().equals(transaction.getTransactionId())) {
+                    throw new LedgerException (
+                        "Ledger", "Failed validating transaction, ID already used"
+                    );
                 }
-            } else {
-                throw new LedgerException (
-                    "Ledger", "Failed validating transaction, null transaction list"
-                );
             }
-        } catch(LedgerException e) {
-            System.out.println(e);
-            return null;
+        } else {
+            throw new LedgerException (
+                "Ledger", "Failed validating transaction, null transaction list"
+            );
         }
 
         // Verify the payer and reciever accounts exist, and amount does not exceed payer's balance
-        try {
-            if (this.getAccount(transaction.getPayer()).getBalance() < transaction.getAmount()) {
-                throw new LedgerException (
-                    "Ledger", "Failed validating transaction, amount exceeds payere's account balance"
-                );
-            }
-            // Precalculate transaction from payer, taking into account fee
-            int newBalance = (
-                (this.getAccount(transaction.getReciever()).getBalance() - transaction.getAmount()) 
-                + transaction.getFee()
+        if (this.getAccount(transaction.getPayer()).getBalance() < transaction.getAmount()) {
+            throw new LedgerException (
+                "Ledger", "Failed validating transaction, amount exceeds payere's account balance"
             );
-            
-            if (newBalance > Integer.MAX_VALUE) {
-                throw new LedgerException (
-                    "Ledger", "Failed validating transaction, fee exceeds reciever's maximum account balance"
-                );
-            }
-        } catch(LedgerException e) {
-            System.out.println(e);
-            return null;
+        }
+
+        // Precalculate transaction from payer, taking into account fee
+        int newBalance = (
+            (this.getAccount(transaction.getReciever()).getBalance() - transaction.getAmount()) 
+            + transaction.getFee()
+        );
+        
+        if (newBalance > Integer.MAX_VALUE) {
+            throw new LedgerException (
+                "Ledger", "Failed validating transaction, fee exceeds reciever's maximum account balance"
+            );
         }
 
         // Verify the amount is not less than 0 or greater than max int
-        try {
-            if ((transaction.getAmount() < 0) || (transaction.getAmount() > Integer.MAX_VALUE)) {
-                throw new LedgerException (
-                    "Ledger", "Failed validating transaction, amount exceeds boundaries"
-                );
-            }
-        } catch(LedgerException e) {
-            System.out.println(e);
-            return null;
+        if ((transaction.getAmount() < 0) || (transaction.getAmount() > Integer.MAX_VALUE)) {
+            throw new LedgerException (
+                "Ledger", "Failed validating transaction, amount exceeds boundaries"
+            );
         }
 
-        // Verify the fee is not less than 0 or greater than 10
-        try {  
-            if (transaction.getFee() < transaction.MAX_FEE) {
-                throw new LedgerException (
-                    "Ledger", "Failed validating transaction, minimum fee not provided"
-                );
-            }
-        } catch(LedgerException e) {
-            System.out.println(e);
-            return null;
+        // Verify the fee is not less than 0 or greater than 10 
+        if (transaction.getFee() < transaction.MAX_FEE) {
+            throw new LedgerException (
+                "Ledger", "Failed validating transaction, minimum fee not provided"
+            );
         }
 
         // Verify the note is not longer than 1024 chars
         String note = transaction.getNote();
-        try {
-            if (note.length() > transaction.MAX_NOTE_LEN) {
-                throw new LedgerException (
-                    "Ledger", "Failed validating transaction, note exceeds char limit"
-                );
-            }
-        } catch(LedgerException e) {
-            System.out.println(e);
-            return null;
+        if (note.length() > transaction.MAX_NOTE_LEN) {
+            throw new LedgerException (
+                "Ledger", "Failed validating transaction, note exceeds char limit"
+            );
         }
 
         Account payerAcc = this.getAccount(transaction.getPayer());
@@ -245,8 +222,9 @@ public class Ledger {
                         transHashList.add(hash);
                     }
                 } catch (LedgerException | IOException e) {
-                    System.out.println(e);
-                    return null;
+                    throw new LedgerException (
+                        "Ledger", "Failed hashing transaction list."
+                    );
                 }
             }
 
@@ -285,38 +263,36 @@ public class Ledger {
      *  (In the merkle tree function) I'll then need to iterate through the hashlist param
      *  ill take a pair (every 2) hashList values and produce a new hash that will be appended to a parentHashList
      *  Note Ill keep iterating over the hashlist until I reach the end. 
-     * (if I can't get a pair of 2 hashes, then reuse the same hash twice)
+     *  (if I can't get a pair of 2 hashes, then reuse the same hash twice)
      *  Ill then recursively call the merkletree function, passing in the new parent list (repeating the previous step)
      *  Base case will be when the hashList param has a length of 1
-     *  see: https://medium.com/@vinayprabhu19/merkel-tree-in-java-b45093c8c6bd
+     * 
+     *  Citation merkleTree method code was originally based on the following article: 
+     *  https://medium.com/@vinayprabhu19/merkel-tree-in-java-b45093c8c6bd
      */
-    private ArrayList<String> merkleTree (ArrayList<String> hashList) {
-        // Base case
+    private ArrayList<String> merkleTree (ArrayList<String> hashList) throws LedgerException {
+        // Base case occurs when we only have one hash value left
         if (hashList.size() == 1) {
             return hashList;
         } else {
             ArrayList<String> recursiveHashList = new ArrayList<String> ();
-            
             // Ensure our hashList param is of even size, so we can grab element-pairs of 2
             if(hashList.size() % 2 == 1){
                 // Hashlists with an odd number of hashes will simiply compute a new hash off the last hash twice
                 hashList.add(hashList.get(hashList.size() - 1));
             }
 
+            // Iterate through hash list and producing a new hash based on pairs of 2 elements
             for (int i = 0; i < hashList.size(); i += 2) {
                 String input = hashList.get(i).concat(hashList.get(i+1));
 
-                try {
-                    String hash = computeHash(input);
-                    if (hash == null) {
-                        throw new LedgerException (
-                            "Ledger", "Unabled to compute hash."
-                        );
-                    } else {
-                        recursiveHashList.add(hash);
-                    }
-                } catch (LedgerException e) {
-                    System.out.println(e);
+                String hash = computeHash(input);
+                if (hash == null) {
+                    throw new LedgerException (
+                        "Ledger", "Unabled to compute merkle tree leaf."
+                    );
+                } else {
+                    recursiveHashList.add(hash);
                 }
             }
 
@@ -329,6 +305,7 @@ public class Ledger {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(this.seed.getBytes(StandardCharsets.UTF_8));
             byte[] hash = md.digest(input.getBytes(StandardCharsets.UTF_8));
+
             // Convert the byte array to a string using the base 64 encoder
             String hashStr = Base64.getEncoder().encodeToString(hash);
             return hashStr;
@@ -343,46 +320,39 @@ public class Ledger {
      * @param address   Address of the given account
      * @return balance  The balance of the given account
      */
-    public int getAccountBalance (String address)  {
-        // Iterate through all accounts in the account balance map
+    public int getAccountBalance (String address) throws LedgerException  {
+        Map <Account, Integer> accountBalances = null;
         try {
-            for (Entry <Account, Integer> mapEntry: this.getAccountBalances().entrySet()) {
+            accountBalances = this.getAccountBalances();
+        } catch (LedgerException e) {
+            throw new LedgerException (
+                "Ledger", "Unabled to get account balance, account doesn't exist."
+            );
+        }
+        if (accountBalances != null) {
+            // Iterate through all accounts in the account balance map
+            for (Entry <Account, Integer> mapEntry: accountBalances.entrySet()) {
                 if (mapEntry.getKey().getAddress().equals(address)) {
                     return mapEntry.getValue();
                 }
             }
-           
-            // We have processed all accounts in the map, account doesn't exist 
-            throw new LedgerException (
-                "Ledger", "Unabled to get account balance, account doesn't exist."
-            );
-        } catch(LedgerException | NullPointerException e) {
-            System.out.println(e);
-            return -1;
         }
+        return 0;
     }
 
     /**
      * Returns the mapping of all accounts and their associated balances for the given block
      * @return this.accountBalanceMap   The account balance map requested, returns null if no map exists
      */
-    public Map <Account, Integer> getAccountBalances () {
+    public Map <Account, Integer> getAccountBalances () throws LedgerException {
         Entry <Integer, Block>  recentBlock = this.blockMap.lastEntry();
-        try {
-            if (recentBlock == null) {
-                throw new LedgerException (
-                    "Ledger", "Unabled to get account balance map, blockMap is empty (no blocks committed yet)."
-                );
-            } else {
-                return recentBlock.getValue().getAccountBalanceMap();
-            }
-        } catch(LedgerException e) {
-            System.out.println(e);
-            return null;
+        if (recentBlock == null) {
+            throw new LedgerException (
+                "Ledger", "Unabled to get account balance map, blockMap is empty (no blocks committed yet)."
+            );
+        } else {
+            return recentBlock.getValue().getAccountBalanceMap();
         }
-        
-        
-        //return this.currentBlock.getAccountBalanceMap();
     }
     
 
@@ -391,81 +361,83 @@ public class Ledger {
      * @param blockNumber   The identifier of the block to be retreived
      * @return block    The resulting block given the queried id
      */
-    /*public Block getBlock (long blockNumber) {
-        return new Block();
-    }*/
+    public Block getBlock (int blockNumber) throws LedgerException {
+        for (Entry <Integer, Block> blockEntry:this.blockMap.entrySet()) {
+            if (blockEntry.getKey() == blockNumber) {
+                return blockEntry.getValue();
+            }
+        }
+        // Iterated through all blocks, block not found.
+        throw new LedgerException (
+            "Ledger", "Unabled to get block, block not found."
+        );
+    }
     
     /**
      * Retreives a transaction given a specific transaction number
      * @param transactionId   The identifier of the transaction to be retreived
      * @return transaction    The resulting transaction given the queried id
      */
-    public Transaction getTransaction (String transactionId) {
+    public Transaction getTransaction (String transactionId) throws LedgerException {
         Entry <Integer, Block>  recentBlock = this.blockMap.lastEntry();
-        try {
-            if (recentBlock == null) {
-                throw new LedgerException (
-                    "Ledger", "Unabled to get transaction, blockMap is empty (no blocks committed yet)."
-                );
-            } else {
-                return recentBlock.getValue().getTransaction(transactionId);
-            }
-        } catch(LedgerException e) {
-            System.out.println(e);
-            return null;
+        if (recentBlock == null) {
+            throw new LedgerException (
+                "Ledger", "Unabled to get transaction, blockMap is empty (no blocks committed yet)."
+            );
+        } else {
+            return recentBlock.getValue().getTransaction(transactionId);
         }
+
     }
-    
 
     /**
      * Valdiate current blockchain state, max of 10 transactions per block and balances total to max value
      */
-    public void validate () {
-        // If I need to validate hashes, comparing block hash and the prevHash of the next block should do...
-        // for each block in the block chain
+    public void validate () throws LedgerException {
+        // Iterate through each block in the block chain
         String prevHash = null;
         for (Entry <Integer, Block> blockEntry:this.blockMap.entrySet()) {
             Block block = blockEntry.getValue();
-            try {
-                // Validate the previous block's hash matches the current block's record of the prevous block's hash
-                if (block.getPrevHash() != prevHash) {
-                    throw new LedgerException (
-                        "Ledger", "Unabled to validate block, hash values missmatch between blocks."
-                    );
-                } else {
-                    System.out.println("Block: " + blockEntry.getKey() + " meets hash req.");
-                }
 
-                // Validate each completed block has exactly 10 transactions.
-                if (block.getTransactionList().size() != 10) {
-                    throw new LedgerException (
-                        "Ledger", "Unabled to validate block, block doesn't meet transaction count limit."
-                    );
-                } else {
-                    System.out.println("Block: " + blockEntry.getKey() + " meets transaction limit.");
-                }
+            // Validate the previous block's hash matches the current block's record of the prevous block's hash
+            if (block.getPrevHash() != prevHash) {
+                throw new LedgerException (
+                    "Ledger", "Unabled to validate block, hash values missmatch between blocks."
+                );
+            } else {
+                System.out.println("Block: " + blockEntry.getKey() + " meets hash req.");
+            }
 
-                // Validate account balances total to the max value
-                int blockBalance = 0;
-                for (Entry <Account, Integer> accountEntry:block.getAccountBalanceMap().entrySet()) {
-                    blockBalance += accountEntry.getValue();
-                }
-                if (blockBalance != Integer.MAX_VALUE) {
-                    throw new LedgerException (
-                        "Ledger", "Unabled to validate block, block accounts don't total to max value."
-                    );
-                } else {
-                    System.out.println("Block: " + blockEntry.getKey() + " account balances match expected total.");
-                }
-                    
-            } catch(LedgerException e) {
-                System.out.println(e);
-                break;
+            // Validate each completed block has exactly 10 transactions.
+            if (block.getTransactionList().size() != 10) {
+                throw new LedgerException (
+                    "Ledger", "Unabled to validate block, block doesn't meet transaction count limit."
+                );
+            } else {
+                System.out.println("Block: " + blockEntry.getKey() + " meets transaction limit.");
+            }
+
+            // Validate account balances total to the max value
+            int blockBalance = 0;
+            for (Entry <Account, Integer> accountEntry:block.getAccountBalanceMap().entrySet()) {
+                blockBalance += accountEntry.getValue();
+            }
+            if (blockBalance != Integer.MAX_VALUE) {
+                throw new LedgerException (
+                    "Ledger", "Unabled to validate block, block accounts don't total to max value."
+                );
+            } else {
+                System.out.println("Block: " + blockEntry.getKey() + " account balances match expected total.");
             }
             prevHash = block.getHash();
         }
         
         
+    }
+
+    public String toString () {
+        String result = "Ledger " + this.getName() + " " + this.getDescription();
+        return result;
     }
 }
 

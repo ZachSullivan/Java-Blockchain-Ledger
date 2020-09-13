@@ -8,10 +8,10 @@ import java.util.Scanner;
 
 public class CommandProcessor {
 
-    // NOTE: This will only support 1 legder at a time, doc doesnt specify more than on simulatenously so keeping as is
+    // NOTE: This will only support 1 legder at a time, doc doesnt specify more than one simulatenously so keeping as is.
     Ledger ledger = null;
 
-    // Searches a list of commands for a suite of given arguments
+    // Search a list of commands for a suite of given arguments
     private Map<String, String> parseArgs (String cmds[], String args[]) {
         // Create a mapping of command keywords and their vars
         Map<String, String> cmdMap = new HashMap <String, String> ();
@@ -33,15 +33,14 @@ public class CommandProcessor {
     
     /**
      * Processes, formats and outputs a single command
-     * 
-     * @param command The string command to be processed
+     * @param command   The string command to be processed
      * @throws LedgerException
      * @throws CommandProcessorException
      */
     public void processCommand(String command) throws LedgerException, CommandProcessorException {
-        // We need to extract substrings from the command string
-        // start by splitting based on spaces
-        // Note I found the quotations in the sample script were not the same ascii "chars I was testing for
+        // Etract substrings from the command string
+        // .. start by splitting based on spaces
+        // NOTE: I found the quotations in the sample script were not the same ascii "chars I was testing for
         command = command.replaceAll("[“”]", "\"");
 
         // Split our cmd string based on spaces (ignoring quotations)
@@ -51,12 +50,11 @@ public class CommandProcessor {
 
         String args[];
         Map<String, String> cmdMap;
+
         // Skip any blank commands or commands denoted as a comment (start with '#')
-        //if (cmds.length > 1){
         if (!cmds[0].equals("#")) {
             // Process user command based on first element in command string
             switch(cmds[0]) {
-                // NEED TO CHECK COMMAND LINES ARE EXPECTED LENGTH
                 case "create-ledger":
                     System.out.println("Creating a new Ledger");
 
@@ -79,11 +77,14 @@ public class CommandProcessor {
                     // Populate a new mapping of arguments to properties
                     cmdMap = parseArgs (cmds, args);
 
-                    if (ledger.createAccount(cmdMap.get("create-account")) != null) {
-                        System.out.println("Created new account.");
-                    } else {
-                        System.out.println("Failed to created account.");
+                    try {
+                        ledger.createAccount(cmdMap.get("create-account"));
+                    } catch (LedgerException e) {
+                        throw new CommandProcessorException (
+                            e.getAction(), e.getReason(), e.getStackTrace()[2].getLineNumber()
+                        );
                     }
+
                     break;
 
                 case "process-transaction":
@@ -111,6 +112,7 @@ public class CommandProcessor {
                         e.printStackTrace();
                     }
 
+                    // Generate a new transaction object based on user params
                     Transaction transaction = new Transaction (
                         cmdMap.get("process-transaction"),
                         amount,
@@ -119,63 +121,119 @@ public class CommandProcessor {
                         cmdMap.get("payer"),
                         cmdMap.get("receiver")
                     );
-
-                    if (ledger.processTransaction(transaction) != null ) {
-                        System.out.println(transaction.toString());
-                        System.out.println("Processed transaction.");
-                    } else {
-                        System.out.println("Failed to process transaction.");
+                    
+                    // Process the new transaction, validating and appending to block
+                    try {
+                        ledger.processTransaction(transaction);
+                    } catch (LedgerException e) {
+                        throw new CommandProcessorException (
+                            e.getAction(), e.getReason(), e.getStackTrace()[0].getLineNumber()
+                        );
                     }
+
                     break;
 
                 case "get-account-balance":
                     System.out.println("Retrieving account balance");
 
+                    // get-account-balance command should specify the following argument
                     args = new String[] {
                         "get-account-balance"
                     };
                     cmdMap = parseArgs (cmds, args);
 
-                    int accountBalance = ledger.getAccountBalance(cmdMap.get("get-account-balance"));
-                    if (accountBalance >= 0) {
-                        System.out.println(
-                            cmdMap.get("get-account-balance")
-                            + "'s account balance: "
-                            + accountBalance
+                    // Obtain account balance, ensuring method did not fail
+                    try {
+                        int accountBalance = ledger.getAccountBalance(cmdMap.get("get-account-balance"));
+                        if (accountBalance >= 0) {
+                            System.out.println(
+                                cmdMap.get("get-account-balance")
+                                + "'s account balance: "
+                                + accountBalance
+                            );
+                        }
+                    } catch (LedgerException e) {
+                        throw new CommandProcessorException (
+                            e.getAction(), e.getReason(), e.getStackTrace()[0].getLineNumber()
                         );
-                    } else {
-                        System.out.println("Failed to retrieve account balance.");
                     }
+
                     break;
                 
                 case "get-account-balances":
                     System.out.println("Retrieving account balances");
-                    Map <Account, Integer> accountBalances = ledger.getAccountBalances();
-                    if (accountBalances != null) {
-                        System.out.println(accountBalances);
-                    } else {
-                        System.out.println("Failed to retrieve account balance map.");
+
+                    try {
+                        System.out.println(ledger.getAccountBalances());
+                    } catch (LedgerException e) {
+                        throw new CommandProcessorException (
+                            e.getAction(), e.getReason(), e.getStackTrace()[0].getLineNumber()
+                        );
                     }
                     
                     break;
                 
                 case "get-transaction":
-                    
+                    // get-transaction command should specify the following argument
                     args = new String[] {"get-transaction"};
                     cmdMap = parseArgs (cmds, args);
+
                     System.out.println("Retrieving transaction " + cmdMap.get("get-transaction"));
-                    Transaction t = ledger.getTransaction(cmdMap.get("get-transaction"));
-                    if (t != null) {
+
+                    // Retrieve the requested transaction object, validate return value
+                    try {
+                        Transaction t = ledger.getTransaction(cmdMap.get("get-transaction"));
                         System.out.println(t.toString());
-                    } else {
-                        System.out.println("Failed to retrieve transaction.");
+                    } catch (LedgerException e) {
+                        throw new CommandProcessorException (
+                            e.getAction(), e.getReason(), e.getStackTrace()[0].getLineNumber()
+                        );
+                    }
+
+                    break;
+
+                case "get-block":
+                    // get-block command should specify the following argument
+
+                    args = new String[] {"get-block"};
+                    cmdMap = parseArgs (cmds, args);
+                    System.out.println("Retrieving block " + cmdMap.get("get-block"));
+
+                    // getBlock arguments accept ints, must convert
+                    int blockId = -1;
+                    try {
+                        blockId = Integer.parseInt(cmdMap.get("get-block"));
+                        if (blockId < 0) {
+                            System.out.println("Failed to parse blockId.");
+                            break;
+                        }
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Retrieve the requested block object, validate return value
+                    try {
+                        Block b = ledger.getBlock(blockId);
+                        System.out.println(b.toString());
+                    } catch (LedgerException e) {
+                        throw new CommandProcessorException (
+                            e.getAction(), e.getReason(), e.getStackTrace()[0].getLineNumber()
+                        );
                     }
 
                     break;
                 
                 case "validate":
+                    // Validate blockchain
                     System.out.println("Validating blockchain");
-                    ledger.validate();
+                    try {
+                        ledger.validate();
+                    } catch (LedgerException e) {
+                        throw new CommandProcessorException (
+                            e.getAction(), e.getReason(), e.getStackTrace()[0].getLineNumber()
+                        );
+                    }
+
                     break;
                 
                 default:
@@ -206,12 +264,17 @@ public class CommandProcessor {
             try {
                 Scanner fileScanner = new Scanner(testScript);
                 while (fileScanner.hasNextLine()) {
-                    processCommand(fileScanner.nextLine()); 
+                    try {
+                        processCommand(fileScanner.nextLine()); 
+                    } catch (CommandProcessorException e) {
+                        System.out.println(e); 
+                    }
                 }  
     
                 fileScanner.close();
             } catch (FileNotFoundException e) { 
-                e.printStackTrace();        
+                //e.printStackTrace(); 
+                System.out.println(e);       
             }
 			
         }
