@@ -1,0 +1,79 @@
+Creating a new Ledger
+Created new ledger
+
+Retrieving account balance
+com.cscie97.ledger.CommandProcessorException: Unabled to get account balance, account doesn't exist. Ledger:335
+
+Creating a new Account
+Creating a new Account
+Creating a new Account
+Creating a new Account
+
+Processesing a new transaction.
+com.cscie97.ledger.CommandProcessorException: Unable to get account, account doesn't exist. Ledger:116
+
+Creating a new Account
+
+Processesing a new transaction.
+com.cscie97.ledger.CommandProcessorException: Failed validating transaction, amount exceeds payere's account balance Ledger:141
+
+Processesing a new transaction.
+
+Processesing a new transaction.
+com.cscie97.ledger.CommandProcessorException: Failed validating transaction, ID already used Ledger:128
+
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+
+Retrieving account balance
+mike's account balance: 1000
+Retrieving account balance
+bob's account balance: 4000
+Retrieving account balance
+bill's account balance: 1000
+Retrieving account balance
+zach's account balance: 2000
+
+Retrieving transaction 1
+Transaction 1: amount: 1000 from "master" to "mike" processing fee: 10
+
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+
+Processesing a new transaction.
+com.cscie97.ledger.CommandProcessorException: Failed validating transaction, amount exceeds boundaries Ledger:161
+
+
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+
+
+Retrieving account balance
+zach's account balance: 2010
+
+
+Processesing a new transaction.
+
+Retrieving transaction 21
+com.cscie97.ledger.CommandProcessorException: Unabled to get transaction, Transaction not found in recent block. Ledger:397
+
+Validating blockchain
+Block: 1 meets hash req.
+Block: 1 meets transaction limit.
+Block: 1 account balances match expected total.
+Block: 2 meets hash req.
+Block: 2 meets transaction limit.
+Block: 2 account balances match expected total.

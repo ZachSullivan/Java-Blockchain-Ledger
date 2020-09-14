@@ -9,12 +9,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
 
+/**
+* The Ledger class manages the blocks of the blockchain, as well as the accounts and transactions.
+* The ledger can:
+* - process and validate transactions
+* - create and reteieve accounts, transactions, blocks and account balances/maps
+* - validate the state of the blockchain
+*
+* @author  Zachary Sullivan
+* @since   2020-09-13 
+*/
 public class Ledger {
     private String name;
     private String description;
     private String seed;
 
-    // Citation: Thank you "Anonymous Gear" on piazza for the inspiration for a temp block to write to.
+    // Citation: Thank you "Anonymous Gear" on class piazza for the inspiration for a temp block to write to.
     // Block currently being written to
     // .. once transaction limit is reached write this block to the block map and start a new currentBlock
     private Block currentBlock;
@@ -40,19 +50,42 @@ public class Ledger {
         }
     }
 
+    /**
+     * Retrieves the identifier for the ledger
+     * @return the ledger's name
+     */
     public String getName() {
         return this.name;
     }
 
+    /**
+     * Retrieves the ledger's descripton
+     * @return the ledger's description
+     */
     public String getDescription () {
         return this.description;
     }
 
+    /**
+     * Retrieves the ledger's mapping of blocks to block ids
+     * @return the ledger's mapping of blocks
+     */
     public Map <Integer, Block> getBlockMap () {
         return this.blockMap;
     }
-
-    public Account getAccount (String accountId) {
+    
+    /**
+     * Retrieves a specficied account via unique id
+     * @param accountId String value of requested account
+     * @return  The requested account object
+     * @throws LedgerException
+     */
+    public Account getAccount (String accountId) throws LedgerException {
+        if (accountId == null) {
+            throw new LedgerException (
+                "Ledger", "Failed while getting account, ID null"
+            );
+        }
         for (Account a:this.currentBlock.getAccountBalanceMap().keySet()) {
             // Return account that matches account id
             if (a.getAddress().equals(accountId)) {
@@ -63,36 +96,30 @@ public class Ledger {
         return null;
     }
 
-
     /**
      * Creates new account with unique ID and balance of 0.
      * @param  accountId the unique account identifier
      * @return unique account ID
-     * TODO: may need to add an @Exception... 
+     * @throws LedgerException
      */
     public String createAccount (String accountId) throws LedgerException {
         Account newAccount = null;
         // Check if account already exists with that accountID
-        //try {
-            if (this.currentBlock.getAccountBalanceMap() == null || this.currentBlock.getAccountBalanceMap().isEmpty() == true) {
-                newAccount = new Account(accountId, Integer.MAX_VALUE);
-            } else {
-                for (Account a:this.currentBlock.getAccountBalanceMap().keySet()) {
+        if (this.currentBlock.getAccountBalanceMap() == null || this.currentBlock.getAccountBalanceMap().isEmpty() == true) {
+            newAccount = new Account(accountId, Integer.MAX_VALUE);
+        } else {
+            for (Account a:this.currentBlock.getAccountBalanceMap().keySet()) {
 
-                    // If the provided account name is already used, return exception.
-                    if (a.getAddress().equals(accountId)) {
-                        throw new LedgerException (
-                            "Ledger", "Failed while creating new account, ID already used"
-                        );
-                    }
+                // If the provided account name is already used, return exception.
+                if (a.getAddress().equals(accountId)) {
+                    throw new LedgerException (
+                        "Ledger", "Failed while creating new account, ID already used"
+                    );
                 }
-                // Create new account, add it to the ledger account list
-                newAccount = new Account(accountId);
             }
-       /* } catch(LedgerException e) {
-            System.out.println(e);
-            return null;
-        }*/
+            // Create new account, add it to the ledger account list
+            newAccount = new Account(accountId);
+        }
 
         // Obtain balance of new account
         // Append new account and balance to current block's accountBalanceMap
@@ -105,8 +132,19 @@ public class Ledger {
      * Validate and process a transaction, adding to current block and updating balances if valid.
      * @param transaction   Transaction to be processed and validated
      * @return transactionId   Unique identifier for the transaction.
+     * @throws LedgerException
      */
     public String processTransaction (Transaction transaction) throws LedgerException {
+
+        Account payerAcc = this.getAccount(transaction.getPayer());
+        Account recieverAcc = this.getAccount(transaction.getReciever());
+        Account masterAcc = this.getAccount("master");
+
+        if (masterAcc == null || payerAcc == null || recieverAcc == null) {
+            throw new LedgerException (
+                "Ledger", "Unable to get account, account doesn't exist."
+            );
+        }
 
         // Verify the unique id
         List<Transaction> transactionList = this.currentBlock.getTransactionList();
@@ -135,7 +173,8 @@ public class Ledger {
 
         // Precalculate transaction from payer, taking into account fee
         int newBalance = (
-            (this.getAccount(transaction.getReciever()).getBalance() - transaction.getAmount()) 
+            (recieverAcc.getBalance() - transaction.getAmount()) 
+            //(this.getAccount(transaction.getReciever()).getBalance() - transaction.getAmount()) 
             + transaction.getFee()
         );
         
@@ -166,10 +205,6 @@ public class Ledger {
                 "Ledger", "Failed validating transaction, note exceeds char limit"
             );
         }
-
-        Account payerAcc = this.getAccount(transaction.getPayer());
-        Account recieverAcc = this.getAccount(transaction.getReciever());
-        Account masterAcc = this.getAccount("master");
 
         // Transfer has been validated, add to transaction list
         this.currentBlock.addTransactionList(transaction);
@@ -269,6 +304,10 @@ public class Ledger {
      * 
      *  Citation merkleTree method code was originally based on the following article: 
      *  https://medium.com/@vinayprabhu19/merkel-tree-in-java-b45093c8c6bd
+     * 
+     *  @param hashList list of hash values to be computed via merkletree (initally a list of transaction hashes)
+     *  @return The final hash value computed from a merkletree of hashes
+     *  @throws LedgerException
      */
     private ArrayList<String> merkleTree (ArrayList<String> hashList) throws LedgerException {
         // Base case occurs when we only have one hash value left
@@ -284,7 +323,7 @@ public class Ledger {
 
             // Iterate through hash list and producing a new hash based on pairs of 2 elements
             for (int i = 0; i < hashList.size(); i += 2) {
-                String input = hashList.get(i).concat(hashList.get(i+1));
+                String input = hashList.get(i).concat(hashList.get(i + 1));
 
                 String hash = computeHash(input);
                 if (hash == null) {
@@ -300,6 +339,11 @@ public class Ledger {
         }
     }
 
+    /**
+     * Generates a new hash value given an input string, via SHA-256 algorithm
+     * @param input String value to be hashed
+     * @return the output of the SHA-256 hashed input param
+     */
     private String computeHash (String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -319,6 +363,7 @@ public class Ledger {
      * Retrieve account balance for a given account via account address (via most recent block).
      * @param address   Address of the given account
      * @return balance  The balance of the given account
+     * @throws LedgerException
      */
     public int getAccountBalance (String address) throws LedgerException  {
         Map <Account, Integer> accountBalances = null;
@@ -343,6 +388,7 @@ public class Ledger {
     /**
      * Returns the mapping of all accounts and their associated balances for the given block
      * @return this.accountBalanceMap   The account balance map requested, returns null if no map exists
+     * @throws LedgerException
      */
     public Map <Account, Integer> getAccountBalances () throws LedgerException {
         Entry <Integer, Block>  recentBlock = this.blockMap.lastEntry();
@@ -360,6 +406,7 @@ public class Ledger {
      * Retreives a block given a specific block number
      * @param blockNumber   The identifier of the block to be retreived
      * @return block    The resulting block given the queried id
+     * @throws LedgerException
      */
     public Block getBlock (int blockNumber) throws LedgerException {
         for (Entry <Integer, Block> blockEntry:this.blockMap.entrySet()) {
@@ -377,6 +424,7 @@ public class Ledger {
      * Retreives a transaction given a specific transaction number
      * @param transactionId   The identifier of the transaction to be retreived
      * @return transaction    The resulting transaction given the queried id
+     * @throws LedgerException
      */
     public Transaction getTransaction (String transactionId) throws LedgerException {
         Entry <Integer, Block>  recentBlock = this.blockMap.lastEntry();
@@ -385,13 +433,20 @@ public class Ledger {
                 "Ledger", "Unabled to get transaction, blockMap is empty (no blocks committed yet)."
             );
         } else {
-            return recentBlock.getValue().getTransaction(transactionId);
+            Transaction t = recentBlock.getValue().getTransaction(transactionId);
+            if (t == null) {
+                throw new LedgerException (
+                    "Ledger", "Unabled to get transaction, Transaction not found in recent block."
+                );
+            }
+            return t;
         }
 
     }
 
     /**
      * Valdiate current blockchain state, max of 10 transactions per block and balances total to max value
+     * @throws LedgerException
      */
     public void validate () throws LedgerException {
         // Iterate through each block in the block chain
@@ -430,9 +485,7 @@ public class Ledger {
                 System.out.println("Block: " + blockEntry.getKey() + " account balances match expected total.");
             }
             prevHash = block.getHash();
-        }
-        
-        
+        }    
     }
 
     public String toString () {

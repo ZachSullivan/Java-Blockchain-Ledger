@@ -2,6 +2,21 @@ package com.cscie97.ledger;
 
 import java.util.*;
 
+/**
+* The Block class, is an individual block within the Ledger Service.
+* Each block is created and maintained by the ledger service, 
+* and contains information regarding up to 10 transactions between accounts
+* Each block has:
+* - an block number providing a unique identity.
+* - a previous hash providing the hash of the previous block in the block chain.
+* - a hash of the this block in the block chain.
+* - a list of transaction objects (max of 10 per block)
+* - a mapping of accounts and their balances for this block
+* - a previous block providing a reference to the block preceeding this block
+*
+* @author  Zachary Sullivan
+* @since   2020-09-13 
+*/
 public class Block {
     private int blockNumber;        // Unique identifier for the block
     private String previousHash;    // Hash value of the previous block

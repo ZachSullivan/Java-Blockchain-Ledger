@@ -12,7 +12,7 @@ public class TestDriver {
         try {
             cliProcessor.processCommandFile(args[0]);
         } catch (CommandProcessorException | LedgerException e) {
-            //System.out.println(e.toString());
+            System.out.println(e.toString());
         }
 
     }

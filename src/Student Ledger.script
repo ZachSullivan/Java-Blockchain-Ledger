@@ -1,0 +1,77 @@
+create-ledger CustomLedger description "CustomLedger description" seed "cscie97"
+
+# expect error since not committed to a block and account not created yet
+get-account-balance bob
+
+create-account bob
+create-account zach
+create-account chris
+create-account mike
+
+# expect this transaction should fail since account "bill" doesnt exist.
+process-transaction 1 amount 1000 fee 10 note "fund account" payer master receiver bill
+
+create-account bill
+
+# expect this transaction should fail since it exceeds the account balance for "mike".
+process-transaction 1 amount 5000 fee 10 note "failure test" payer mike receiver bob
+
+process-transaction 1 amount 1000 fee 10 note "fund account" payer master receiver mike
+
+# expect this transaction should fail since it has a ID already in use
+process-transaction 1 amount 1000 fee 10 note "failure test" payer master receiver bob
+
+process-transaction 2 amount 1000 fee 10 note "fund account" payer master receiver bob
+process-transaction 3 amount 1000 fee 10 note "fund account" payer master receiver zach
+process-transaction 4 amount 1000 fee 10 note "fund account" payer master receiver chris
+process-transaction 5 amount 1000 fee 10 note "fund account" payer master receiver bob
+process-transaction 6 amount 1000 fee 10 note "fund account" payer master receiver bob
+process-transaction 7 amount 1000 fee 10 note "fund account" payer master receiver bill
+process-transaction 8 amount 1000 fee 10 note "fund account" payer master receiver zach
+process-transaction 9 amount 1000 fee 10 note "fund account" payer master receiver chris
+process-transaction 10 amount 1000 fee 10 note "fund account" payer master receiver bob
+
+# expect balance of 1000 for mike
+get-account-balance mike
+# expect balance of 4000 for bob
+get-account-balance bob
+# expect balance of 1000 for bill
+get-account-balance bill
+# expect balance of 2000 for zach
+get-account-balance zach
+
+# expect transaction 1 amount 1000 fee 10 note "fund account" payer master receiver mike
+get-transaction 1
+
+process-transaction 11 amount 1 fee 10 note "defund account" payer bob receiver zach
+process-transaction 12 amount 1 fee 10 note "defund account" payer bob receiver zach
+process-transaction 13 amount 1 fee 10 note "defund account" payer bob receiver zach
+process-transaction 14 amount 1 fee 10 note "defund account" payer bob receiver zach
+process-transaction 15 amount 1 fee 10 note "defund account" payer bob receiver zach
+process-transaction 16 amount 1 fee 10 note "defund account" payer bob receiver zach
+process-transaction 17 amount 1 fee 10 note "defund account" payer bob receiver zach
+
+# expect this transaction should fail since amount is negative
+process-transaction 18 amount -1 fee 10 note "failure" payer bob receiver zach
+
+
+process-transaction 18 amount 1 fee 10 note "defund account" payer bob receiver zach
+process-transaction 19 amount 1 fee 10 note "defund account" payer bob receiver zach
+process-transaction 20 amount 1 fee 10 note "defund account" payer bob receiver zach
+
+
+# expect balance of 2010 for zach
+get-account-balance zach
+
+# this transaction should not be read by the command line parser
+# process-transaction 21 amount 100 fee 10 note "fund account" payer mike receiver chris
+
+process-transaction 21 amount 500 fee 10 note "fund account" payer chris receiver bill
+
+# expect this to fail, despite transaction 21 being added to the recent block
+# .. the recent block has yet to be commited to the block chain
+get-transaction 21
+
+# validate the state of the blockchain
+# expect only blocks 1, 2 to be validated as block 3 has yet to be added to the chain
+validate

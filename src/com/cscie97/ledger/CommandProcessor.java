@@ -6,6 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+* The command processor class, reads a script file and parses each command line.
+* Commands are executed by the ledger service.
+*
+* @author  Zachary Sullivan
+* @since   2020-09-13 
+*/
 public class CommandProcessor {
 
     // NOTE: This will only support 1 legder at a time, doc doesnt specify more than one simulatenously so keeping as is.
@@ -38,7 +45,7 @@ public class CommandProcessor {
      * @throws CommandProcessorException
      */
     public void processCommand(String command) throws LedgerException, CommandProcessorException {
-        // Etract substrings from the command string
+        // Extract substrings from the command string
         // .. start by splitting based on spaces
         // NOTE: I found the quotations in the sample script were not the same ascii "chars I was testing for
         command = command.replaceAll("[“”]", "\"");
@@ -273,7 +280,6 @@ public class CommandProcessor {
     
                 fileScanner.close();
             } catch (FileNotFoundException e) { 
-                //e.printStackTrace(); 
                 System.out.println(e);       
             }
 			

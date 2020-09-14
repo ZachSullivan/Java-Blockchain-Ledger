@@ -1,5 +1,15 @@
 package com.cscie97.ledger;
 
+/**
+* The Account class, is an individual account within the Ledger Service.
+* Each account is created and maintained by the ledger service.
+* Each account has:
+* - an address providing a unique identity.
+* - a balance providing the value of the account.
+*
+* @author  Zachary Sullivan
+* @since   2020-09-13 
+*/
 public class Account {
     private String address; // Unique identifier for the account
     private int balance;    // Records total transfers + fees to and from account

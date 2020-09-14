@@ -1,0 +1,118 @@
+Creating a new Ledger
+Created new ledger
+
+
+Creating a new Account
+Creating a new Account
+Creating a new Account
+Creating a new Account
+Creating a new Account
+
+
+Retrieving account balance
+com.cscie97.ledger.CommandProcessorException: Unabled to get account balance, account doesn't exist. Ledger:335
+
+
+
+
+
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+
+
+Retrieving account balance
+com.cscie97.ledger.CommandProcessorException: Unabled to get account balance, account doesn't exist. Ledger:335
+
+
+Retrieving account balances
+com.cscie97.ledger.CommandProcessorException: Unabled to get account balance map, blockMap is empty (no blocks committed yet). Ledger:357
+
+
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+
+
+Retrieving account balance
+mary's account balance: 3000
+Retrieving account balance
+bob's account balance: 3000
+Retrieving account balance
+bill's account balance: 2000
+Retrieving account balance
+frank's account balance: 2000
+Retrieving account balance
+jane's account balance: 0
+
+
+Retrieving block 1
+Block 1 hash: sZ5e2pjBeRuGukt+sWh8098Frkd5YbVm03GIPsMKIvA= Transaction List: [Transaction 1: amount: 1000 from "master" to "mary" processing fee: 10, Transaction 2: amount: 1000 from "master" to "bob" processing fee: 10, Transaction 3: amount: 1000 from "master" to "bill" processing fee: 10, Transaction 4: amount: 1000 from "master" to "frank" processing fee: 10, Transaction 5: amount: 1000 from "master" to "mary" processing fee: 10, Transaction 6: amount: 1000 from "master" to "bob" processing fee: 10, Transaction 7: amount: 1000 from "master" to "bill" processing fee: 10, Transaction 8: amount: 1000 from "master" to "frank" processing fee: 10, Transaction 9: amount: 1000 from "master" to "mary" processing fee: 10, Transaction 10: amount: 1000 from "master" to "bob" processing fee: 10]
+
+
+
+Retrieving transaction 10
+Transaction 10: amount: 1000 from "master" to "bob" processing fee: 10
+
+
+Processesing a new transaction.
+
+
+Retrieving account balance
+frank's account balance: 2000
+Retrieving account balance
+jane's account balance: 0
+
+
+
+
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+Processesing a new transaction.
+
+
+Retrieving account balance
+jane's account balance: 200
+
+
+Retrieving account balance
+frank's account balance: 1790
+
+
+Retrieving account balance
+mary's account balance: 3180
+
+
+Retrieving account balance
+bob's account balance: 2730
+
+
+Retrieving account balances
+{bob's account=2730, frank's account=1790, jane's account=200, master's account=2147473747, mary's account=3180, bill's account=2000}
+
+
+Processesing a new transaction.
+com.cscie97.ledger.CommandProcessorException: Failed validating transaction, amount exceeds payere's account balance Ledger:141
+
+
+Processesing a new transaction.
+com.cscie97.ledger.CommandProcessorException: Failed validating transaction, minimum fee not provided Ledger:168
+
+
+Validating blockchain
+Block: 1 meets hash req.
+Block: 1 meets transaction limit.
+Block: 1 account balances match expected total.
+Block: 2 meets hash req.
+Block: 2 meets transaction limit.
+Block: 2 account balances match expected total.
