@@ -1,8 +1,10 @@
-#J-Ledger
+# J-Ledger
+
+Welcome to J-Ledger, a Java implementation of a blockchain Ledger Service. 
 
 ## Getting Started
 
-Welcome to J-Ledger, a Java implementation of a blockchain Ledger Service. The Ledger Service manages transactions, accounts, and blocks that make up the Blockchain.  Users submit transactions which once validated are added to a block. As Blocks fill up with Transaction objects, account balances are updated. Once 10 transactions are added to a Block, the Block is added to the Ledger. All blocks are chained together by including the hash of the previous block as a field in each new block. The blockchain can be validated at any time by recomputing the hashes of each block and comparing the result with the hash that has been stored in the next block.
+The Ledger Service manages transactions, accounts, and blocks that make up the Blockchain.  Users submit transactions which once validated are added to a block. As Blocks fill up with Transaction objects, account balances are updated. Once 10 transactions are added to a Block, the Block is added to the Ledger. All blocks are chained together by including the hash of the previous block as a field in each new block. The blockchain can be validated at any time by recomputing the hashes of each block and comparing the result with the hash that has been stored in the next block.
 
 ## Folder Structure
 
